@@ -1,6 +1,6 @@
 // // pages/api/items.ts
-// import type { NextApiRequest, NextApiResponse } from "next";
-// import { getPool } from "../../../lib/db";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getPool } from "../../../lib/db";
 
 export default async function handler(
   req: NextApiRequest,
