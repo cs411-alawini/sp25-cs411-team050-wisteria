@@ -5,6 +5,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -37,14 +38,18 @@ export default function SignIn() {
       </Head>
 
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
-          <div className="h-1.5 bg-gradient-to-r from-green-300 via-blue-300 to-violet-300"></div>
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-cyan-400">
+          {/* <div className="h-1.5 bg-gradient-to-r from-green-300 to-blue-400"></div> */}
 
           <div className="px-8 pt-8 pb-6">
-            <h1 className="text-2xl font-semibold text-slate-800 text-center">
-              Sign In
-            </h1>
-            <p className="text-slate-500 text-center text-sm mt-1">
+            <div className="flex items-center justify-center">
+              <Image src="/logo.png" width={120} height={120} alt="logo" />
+              <h1 className="text-3xl font-bold text-slate-800 text-center mr-10">
+                agri
+              </h1>
+            </div>
+
+            <p className="text-slate-500 text-center text-md mt-1">
               Enter your credentials to access your account
             </p>
           </div>
@@ -164,7 +169,7 @@ export default function SignIn() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-black bg-gradient-to-r bg-violet-400 transition-all"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-black bg-gradient-to-r bg-emerald-500 transition-all"
                 disabled={loading}
               >
                 {loading ? (
