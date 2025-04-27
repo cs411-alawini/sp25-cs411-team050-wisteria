@@ -7,6 +7,9 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function SignUp() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,7 +36,14 @@ export default function SignUp() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, city, country }),
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        city,
+        country,
+      }),
     });
 
     const data = await res.json();
@@ -48,7 +58,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 text-black">
+    <div className="min-h-screen py-10 flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 text-black">
       <Head>
         <title>Sign In</title>
         <meta name="description" content="Sign in to your account" />
@@ -95,6 +105,50 @@ export default function SignUp() {
           )}
 
           <form className="px-8 pb-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="flex space-x-4">
+              <div className="w-1/2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    First Name
+                  </label>
+                </div>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    className="py-3 px-4 w-full border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all"
+                    placeholder="Enter first name"
+                  />
+                </div>
+              </div>
+              <div className="w-1/2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Last Name
+                  </label>
+                </div>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    className="py-3 px-4 w-full border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all"
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+            </div>
             <div className="space-y-1">
               <label
                 htmlFor="email"
