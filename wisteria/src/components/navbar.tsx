@@ -58,6 +58,10 @@ const Navbar = () => {
     }
   };
 
+  const goToProfile = () => {
+    router.push("/profile");
+  };
+
   return (
     <nav className="sticky top-0 z-40 bg-white shadow-md px-8 py-4 flex items-center justify-between">
       <div className="flex items-center">
@@ -90,15 +94,17 @@ const Navbar = () => {
               ref={dropdownRef}
               className="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2 flex flex-col"
             >
-              <a
-                href="/profile"
+              <button
                 className="px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-700 transition rounded-t-lg"
-                onClick={() => setShowDropdown(false)}
+                onClick={() => {
+                  setShowDropdown(false);
+                  goToProfile();
+                }}
               >
                 View Profile
-              </a>
+              </button>
               <button
-                className="px-4 py-2 text-left text-gray-800 hover:bg-blue-50 hover:text-blue-700 transition rounded-b-lg"
+                className="px-4 py-2 text-gray-800 hover:bg-blue-50 hover:text-blue-700 transition rounded-t-lg"
                 onClick={() => {
                   setShowDropdown(false);
                   handleLogout();

@@ -11,6 +11,7 @@ interface RegisterBody {
   password: string;
   city: string;
   country: string;
+  grocList: boolean;
 }
 
 interface LocationRow extends RowDataPacket {
@@ -22,7 +23,7 @@ interface IdRow extends RowDataPacket {
 }
 
 export async function POST(req: NextRequest) {
-  const { firstName, lastName, email, password, city, country } =
+  const { firstName, lastName, email, password, city, country, grocList } =
     (await req.json()) as RegisterBody;
 
   // — minimal server validation —
@@ -53,12 +54,13 @@ export async function POST(req: NextRequest) {
 
   // 3) call stored procedure AddNewUser
   try {
-    await pool.query("CALL AddNewUser(?, ?, ?, ?, ?)", [
+    await pool.query("CALL AddNewUser(?, ?, ?, ?, ?, ?)", [
       firstName,
       lastName,
       email,
       hashed,
       locationId,
+      grocList,
     ]);
   } catch (err: unknown) {
     // If the SP SIGNALs an error, it comes here
@@ -80,6 +82,12 @@ export async function POST(req: NextRequest) {
 
   const res = NextResponse.json({ success: true }, { status: 201 });
   res.cookies.set("token", token, {
+    httpOnly: true,
+    maxAge: Number(process.env.COOKIE_MAX_AGE),
+    path: "/",
+    sameSite: "lax",
+  });
+  res.cookies.set("userId", userId.toString(), {
     httpOnly: true,
     maxAge: Number(process.env.COOKIE_MAX_AGE),
     path: "/",

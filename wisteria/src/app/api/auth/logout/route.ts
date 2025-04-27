@@ -12,6 +12,12 @@ export async function POST(req: NextRequest) {
     path: "/",
     sameSite: "lax",
   });
+  response.cookies.set("userId", "", {
+    httpOnly: true,
+    expires: new Date(0), // Set to epoch time to expire immediately
+    path: "/",
+    sameSite: "lax",
+  });
 
   return response;
 }
