@@ -37,5 +37,12 @@ export async function POST(req: Request) {
     sameSite: "lax", // Adding this for better security
   });
 
+  res.cookies.set("userId", user.UserId.toString(), {
+    httpOnly: true,
+    maxAge: 60 * 60, // 1h
+    path: "/",
+    sameSite: "lax", // Adding this for better security
+  });
+
   return res;
 }
