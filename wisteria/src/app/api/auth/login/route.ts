@@ -13,24 +13,29 @@ export async function POST(req: Request) {
     "SELECT UserId, PasswordField FROM userData WHERE EmailId = ?",
     [EmailId]
   );
+
   if (rows.length === 0) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  // 2) check password
+  // 2) check password - now using async version
   const user = rows[0];
   const ok = await verifyPassword(PasswordField, user.PasswordField);
+
   if (!ok) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  // 3) sign & set cookie
-  const token = signToken({ userId: user.UserId });
+  // 3) sign & set cookie - now using async version
+  const token = await signToken({ userId: user.UserId });
+
   const res = NextResponse.json({ success: true });
   res.cookies.set("token", token, {
     httpOnly: true,
     maxAge: 60 * 60, // 1h
     path: "/",
+    sameSite: "lax", // Adding this for better security
   });
+
   return res;
 }
