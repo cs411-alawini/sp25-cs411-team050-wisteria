@@ -1,47 +1,88 @@
 import { NextResponse } from "next/server";
-import pool from "../../../../../lib/db";
+import type { NextRequest } from "next/server";
 import { hashPassword, signToken } from "../../../../../lib/auth";
+import pool from "../../../../../lib/db";
 import { RowDataPacket } from "mysql2";
 
-export async function POST(req: Request) {
-  const { email, password, city, country } = await req.json();
+interface RegisterBody {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  city: string;
+  country: string;
+}
 
-  // (1) Simple server-side validation
+interface LocationRow extends RowDataPacket {
+  LocationId: number;
+}
+
+interface IdRow extends RowDataPacket {
+  id: number;
+}
+
+export async function POST(req: NextRequest) {
+  const { firstName, lastName, email, password, city, country } =
+    (await req.json()) as RegisterBody;
+
+  // — minimal server validation —
   if (!email.includes("@") || password.length < 8) {
     return NextResponse.json(
-      { error: "Invalid email or password" },
+      { error: "Invalid email or password format." },
       { status: 422 }
     );
   }
 
-  // (2) Check if email exists
-  const [[exists]] = await pool.query<RowDataPacket[]>(
-    "SELECT 1 FROM userData WHERE EmailId = ?",
-    [email]
+  // 1) look up locationId
+  const [locRows] = await pool.query<LocationRow[]>(
+    "SELECT LocationId FROM locationData WHERE City = ? AND Country = ?",
+    [city, country]
   );
-  if (exists) {
+
+  if (locRows.length === 0) {
     return NextResponse.json(
-      { error: "Email already in use" },
-      { status: 409 }
+      { error: "Unknown city/country combination." },
+      { status: 400 }
     );
   }
 
-  // (3) Hash & insert
-  const hashed = await hashPassword(password);
-  const [result] = await pool.query(
-    `INSERT INTO userData (EmailId, PasswordField, UserLocationId)
-     VALUES (?, ?, ?)`,
-    [email, hashed, /* you’d map city/country → locationId */ 1]
-  );
-  const userId = (result as any).insertId;
+  const locationId = locRows[0].LocationId;
 
-  // (4) Sign & set cookie
-  const token = signToken({ userId });
-  const res = NextResponse.json({ success: true, userId }, { status: 201 });
+  // 2) hash the password
+  const hashed = await hashPassword(password);
+
+  // 3) call stored procedure AddNewUser
+  try {
+    await pool.query("CALL AddNewUser(?, ?, ?, ?, ?)", [
+      firstName,
+      lastName,
+      email,
+      hashed,
+      locationId,
+    ]);
+  } catch (err: unknown) {
+    // If the SP SIGNALs an error, it comes here
+    const error = err as Error;
+    return NextResponse.json(
+      { error: error.message || "Could not create user." },
+      { status: 400 }
+    );
+  }
+
+  // 4) sign JWT & set cookie
+  const [idResult] = await pool.query<IdRow[]>("SELECT LAST_INSERT_ID() as id");
+  const userId = idResult[0].id;
+
+  const token = signToken({
+    userId,
+  });
+
+  const res = NextResponse.json({ success: true }, { status: 201 });
   res.cookies.set("token", token, {
     httpOnly: true,
     maxAge: Number(process.env.COOKIE_MAX_AGE),
     path: "/",
   });
+
   return res;
 }
