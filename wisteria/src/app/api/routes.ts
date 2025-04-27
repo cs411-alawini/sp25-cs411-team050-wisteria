@@ -1,46 +1,24 @@
-// // pages/api/items.ts
-<<<<<<< HEAD
-// import type { NextApiRequest, NextApiResponse } from "next";
-// import { getPool } from "../../../lib/db";
-
-// export default async function handler(
-//   req: NextApiRequest,
-//   res: NextApiResponse
-// ) {
-//   if (req.method === "GET") {
-//     try {
-//       const pool = getPool();
-//       const result = await pool.query("SELECT * FROM items");
-//       res.status(200).json(result.rows);
-//     } catch (error) {
-//       console.error("Database error:", error);
-//       res.status(500).json({ error: "Failed to fetch data" });
-//     }
-//   } else {
-//     res.setHeader("Allow", ["GET"]);
-//     res.status(405).end(`Method ${req.method} Not Allowed`);
-//   }
-// }
-=======
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getPool } from "../../../lib/db";
+
+import { RowDataPacket } from "mysql2";
+import pool from "../../../lib/db";
+
+// tell TS that each row is a RowDataPacket plus our field
+type Data = RowDataPacket & {
+  current_time: string;
+};
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<Data[] | { error: string }>
 ) {
-  if (req.method === "GET") {
-    try {
-      const pool = getPool();
-      const result = await pool.query("SELECT * FROM userData");
-      res.status(200).json(result.rows);
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({ error: "Failed to fetch data" });
-    }
-  } else {
-    res.setHeader("Allow", ["GET"]);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  try {
+    // now use Data[] as the generic, which extends RowDataPacket
+    const [rows] = await pool.query<Data[]>("SELECT NOW() AS current_time");
+
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Database connection error:", error);
+    res.status(500).json({ error: "Database connection failed." });
   }
 }
->>>>>>> 60f39923a2c76dc16996a1f6cf522ffadfb0e797
