@@ -11,23 +11,41 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [city, setCity] = useState("");
+
+  const [country, setCountry] = useState("");
+
   const router = useRouter();
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (!email.includes("@")) {
+      setError("Please enter a valid email.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
     setLoading(true);
 
-    try {
-      // Replace with your actual authentication logic
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push("/dashboard");
-    } catch (err) {
-      setError("Invalid email or password");
-    } finally {
-      setLoading(false);
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, city, country }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(data.error || "Something went wrong");
+    } else {
+      // API SETS COOKIE, DW ABT IT
+      router.push("/home");
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 text-black">
@@ -147,6 +165,52 @@ export default function SignUp() {
                   className="py-3 pl-10 w-full border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all"
                   placeholder="••••••••"
                 />
+              </div>
+            </div>
+
+            <div className="flex space-x-4">
+              <div className="w-1/2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="city"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    City
+                  </label>
+                </div>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    id="city"
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    required
+                    className="py-3 px-4 w-full border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all"
+                    placeholder="Enter city"
+                  />
+                </div>
+              </div>
+
+              <div className="w-1/2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="country"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Country
+                  </label>
+                </div>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <input
+                    id="country"
+                    type="text"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    required
+                    className="py-3 px-4 w-full border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all"
+                    placeholder="Enter country"
+                  />
+                </div>
               </div>
             </div>
 

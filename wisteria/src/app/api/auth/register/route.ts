@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
 import pool from "../../../../../lib/db";
-import { hashPassword } from "../../../../../lib/auth";
+import { hashPassword, signToken } from "../../../../../lib/auth";
 import { RowDataPacket } from "mysql2";
 
 export async function POST(req: Request) {
-  const { FirstName, LastName, EmailId, PasswordField, UserLocationId } =
-    await req.json();
+  const { email, password, city, country } = await req.json();
 
-  // 1) check email not taken
-  const [[exists]] = await pool.query<RowDataPacket[][]>(
+  // (1) Simple server-side validation
+  if (!email.includes("@") || password.length < 8) {
+    return NextResponse.json(
+      { error: "Invalid email or password" },
+      { status: 422 }
+    );
+  }
+
+  // (2) Check if email exists
+  const [[exists]] = await pool.query<RowDataPacket[]>(
     "SELECT 1 FROM userData WHERE EmailId = ?",
-    [EmailId]
+    [email]
   );
   if (exists) {
     return NextResponse.json(
@@ -19,14 +26,22 @@ export async function POST(req: Request) {
     );
   }
 
-  // 2) hash password
-  const hashed = await hashPassword(PasswordField);
-
-  // 3) insert
-  const [res] = await pool.query(
-    "INSERT INTO userData (FirstName, LastName, EmailId, PasswordField, UserLocationId) VALUES (?, ?, ?, ?, ?)",
-    [FirstName, LastName, EmailId, hashed, UserLocationId]
+  // (3) Hash & insert
+  const hashed = await hashPassword(password);
+  const [result] = await pool.query(
+    `INSERT INTO userData (EmailId, PasswordField, UserLocationId)
+     VALUES (?, ?, ?)`,
+    [email, hashed, /* you’d map city/country → locationId */ 1]
   );
+  const userId = (result as any).insertId;
 
-  return NextResponse.json({ success: true, userId: (res as any).insertId });
+  // (4) Sign & set cookie
+  const token = signToken({ userId });
+  const res = NextResponse.json({ success: true, userId }, { status: 201 });
+  res.cookies.set("token", token, {
+    httpOnly: true,
+    maxAge: Number(process.env.COOKIE_MAX_AGE),
+    path: "/",
+  });
+  return res;
 }
