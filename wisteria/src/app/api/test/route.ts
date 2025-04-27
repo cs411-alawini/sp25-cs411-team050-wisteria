@@ -1,6 +1,6 @@
 import { RowDataPacket } from "mysql2";
 import pool from "../../../../lib/db";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 type Data = RowDataPacket & { current_time: string };
 

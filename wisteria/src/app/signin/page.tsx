@@ -1,4 +1,3 @@
-// pages/signin.tsx
 "use client";
 
 import { useState, FormEvent } from "react";
@@ -149,21 +148,6 @@ export default function SignIn() {
                   placeholder="••••••••"
                 />
               </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-blue-500 focus:ring-blue-400 border-slate-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-slate-700"
-              >
-                Remember me
-              </label>
             </div>
 
             <div>
