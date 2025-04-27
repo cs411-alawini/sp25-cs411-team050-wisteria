@@ -5,6 +5,7 @@ import React from "react";
 
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 
 const Navbar = () => {
   const router = useRouter();
@@ -75,10 +76,16 @@ const Navbar = () => {
         <h1 className="ml-2 text-2xl font-bold text-gray-800">agri</h1>
       </div>
       <div className="flex items-center gap-6">
-        <a href="#" className="text-gray-700 hover:text-blue-700 font-medium">
+        <Link
+          href="/home"
+          className="text-gray-700 hover:text-blue-700 font-medium"
+        >
           Dashboard
-        </a>
-        <a href="#" className="text-gray-700 hover:text-blue-700 font-medium">
+        </Link>
+        <a
+          href="/home"
+          className="text-gray-700 hover:text-blue-700 font-medium"
+        >
           Lists
         </a>
         <div className="relative">
