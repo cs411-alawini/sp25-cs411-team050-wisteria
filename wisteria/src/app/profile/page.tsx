@@ -29,10 +29,52 @@ export default function ProfilePage() {
     setEditValue(profile[field]);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editField) {
-      setProfile({ ...profile, [editField]: editValue });
-      setEditField(null);
+      try {
+        // Call the backend API to update the user
+        const response = await fetch("/api/updateUser", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            oldEmail: profile.email, // old email to find user
+            firstName:
+              editField === "name"
+                ? editValue.split(" ")[0]
+                : profile.name.split(" ")[0],
+            lastName:
+              editField === "name"
+                ? editValue.split(" ")[1] ?? ""
+                : profile.name.split(" ")[1] ?? "",
+            newEmail: editField === "email" ? editValue : profile.email,
+            newPassword: "", // You can add password update separately
+            city:
+              editField === "location"
+                ? editValue.split(",")[0].trim()
+                : profile.location.split(",")[0].trim(),
+            country:
+              editField === "location"
+                ? editValue.split(",")[1]?.trim() ?? ""
+                : profile.location.split(",")[1]?.trim() ?? "",
+          }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          alert(`Error: ${data.error}`);
+        } else {
+          const data = await response.json();
+          console.log(data.message);
+          // Update local state to show the new value
+          setProfile({ ...profile, [editField]: editValue });
+          setEditField(null);
+        }
+      } catch (error) {
+        console.error("Failed to update profile:", error);
+        alert("Failed to update profile. See console for details.");
+      }
     }
   };
 
@@ -63,7 +105,9 @@ export default function ProfilePage() {
       <main className="p-8 flex flex-col items-center">
         <div className="w-full max-w-2xl flex flex-col gap-8">
           <section className="mb-8 text-black bg-gradient-to-br from-white to-green-50 p-8 rounded-xl shadow-md border border-green-100">
-            <h2 className="text-3xl font-bold mb-6 text-emerald-900">Profile</h2>
+            <h2 className="text-3xl font-bold mb-6 text-emerald-900">
+              Profile
+            </h2>
             <div className="flex flex-col gap-6">
               {/* Name Row */}
               <div className="flex flex-row items-center md:gap-6 gap-2 w-full">
@@ -74,7 +118,7 @@ export default function ProfilePage() {
                       <input
                         type="text"
                         value={editValue}
-                        onChange={e => setEditValue(e.target.value)}
+                        onChange={(e) => setEditValue(e.target.value)}
                         className="border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm min-w-[200px]"
                       />
                       <button
@@ -91,7 +135,9 @@ export default function ProfilePage() {
                       </button>
                     </>
                   ) : (
-                    <span className="text-xl font-semibold text-gray-900">{profile.name}</span>
+                    <span className="text-xl font-semibold text-gray-900">
+                      {profile.name}
+                    </span>
                   )}
                 </div>
                 <button
@@ -111,7 +157,7 @@ export default function ProfilePage() {
                       <input
                         type="email"
                         value={editValue}
-                        onChange={e => setEditValue(e.target.value)}
+                        onChange={(e) => setEditValue(e.target.value)}
                         className="border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm min-w-[200px]"
                       />
                       <button
@@ -128,7 +174,9 @@ export default function ProfilePage() {
                       </button>
                     </>
                   ) : (
-                    <span className="text-xl font-semibold text-gray-900">{profile.email}</span>
+                    <span className="text-xl font-semibold text-gray-900">
+                      {profile.email}
+                    </span>
                   )}
                 </div>
                 <button
@@ -148,7 +196,7 @@ export default function ProfilePage() {
                       <input
                         type="text"
                         value={editValue}
-                        onChange={e => setEditValue(e.target.value)}
+                        onChange={(e) => setEditValue(e.target.value)}
                         className="border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm min-w-[200px]"
                       />
                       <button
@@ -165,7 +213,9 @@ export default function ProfilePage() {
                       </button>
                     </>
                   ) : (
-                    <span className="text-xl font-semibold text-gray-900">{profile.location}</span>
+                    <span className="text-xl font-semibold text-gray-900">
+                      {profile.location}
+                    </span>
                   )}
                 </div>
                 <button
@@ -190,27 +240,29 @@ export default function ProfilePage() {
                   className="mt-6 max-w-md mx-auto bg-white p-6 rounded-lg shadow border border-blue-100"
                   onSubmit={handlePasswordReset}
                 >
-                  <h3 className="text-xl font-semibold mb-4 text-blue-800">Reset Password</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-blue-800">
+                    Reset Password
+                  </h3>
                   <div className="flex flex-col gap-4">
                     <input
                       type="password"
                       placeholder="Old Password"
                       value={oldPassword}
-                      onChange={e => setOldPassword(e.target.value)}
+                      onChange={(e) => setOldPassword(e.target.value)}
                       className="border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <input
                       type="password"
                       placeholder="New Password"
                       value={newPassword}
-                      onChange={e => setNewPassword(e.target.value)}
+                      onChange={(e) => setNewPassword(e.target.value)}
                       className="border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <input
                       type="password"
                       placeholder="Confirm New Password"
                       value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       className="border border-gray-300 rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
@@ -220,7 +272,9 @@ export default function ProfilePage() {
                       Reset Password
                     </button>
                     {resetMessage && (
-                      <div className="text-center text-sm text-red-600 mt-2">{resetMessage}</div>
+                      <div className="text-center text-sm text-red-600 mt-2">
+                        {resetMessage}
+                      </div>
                     )}
                   </div>
                 </form>

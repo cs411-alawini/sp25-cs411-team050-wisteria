@@ -19,11 +19,28 @@ export default function SignIn() {
     setLoading(true);
 
     try {
-      // Replace with your actual authentication logic
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push("/dashboard");
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          EmailId: email, // assuming you have an 'email' state variable
+          PasswordField: password, // assuming you have a 'password' state variable
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Login failed");
+      }
+
+      // If login is successful, redirect to home
+      router.push("/home");
     } catch (err) {
-      setError("Invalid email or password");
+      setError(
+        err instanceof Error ? err.message : "Invalid email or password"
+      );
     } finally {
       setLoading(false);
     }

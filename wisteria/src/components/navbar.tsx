@@ -1,9 +1,14 @@
+"use client";
+
 import Image from "next/image";
 import React from "react";
 
+import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 
 const Navbar = () => {
+  const router = useRouter();
+
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -31,9 +36,26 @@ const Navbar = () => {
     };
   }, [showDropdown]);
 
-  const handleSignOut = () => {
-    // Placeholder: implement actual sign out logic
-    alert("Signed out!");
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        // Redirect to login page after successful logout
+        router.push("/signin");
+        // If you're using any client-side state management (like React Context)
+        // you would also want to clear the auth state here
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
 
   return (
@@ -79,7 +101,7 @@ const Navbar = () => {
                 className="px-4 py-2 text-left text-gray-800 hover:bg-blue-50 hover:text-blue-700 transition rounded-b-lg"
                 onClick={() => {
                   setShowDropdown(false);
-                  handleSignOut();
+                  handleLogout();
                 }}
               >
                 Sign Out
