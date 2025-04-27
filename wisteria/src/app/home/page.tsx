@@ -38,7 +38,7 @@ export default function Home() {
               className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
               aria-label="Location search"
             />
-            <button className="bg-cyan-800 text-white px-6 py-3 rounded-lg font-semibold text-lg cursor-pointer hover:bg-blue-700 transition-all shadow-sm">
+            <button className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold text-lg cursor-pointer hover:bg-emerald-700 transition-all shadow-sm">
               Search
             </button>
           </div>
@@ -87,7 +87,7 @@ export default function Home() {
             </div>
 
             <div className="mt-8 flex">
-              <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold text-base cursor-pointer hover:bg-green-500 transition-all shadow-sm flex items-center">
+              <button className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold text-base cursor-pointer hover:bg-emerald-700 transition-all shadow-sm flex items-center">
                 <AiOutlinePlus className="h-5 w-5 mr-2" />
                 Add to Grocery List
               </button>
@@ -113,7 +113,7 @@ export default function Home() {
                 GROCERY LISTS
               </h2>
               <button
-                className="bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold text-lg cursor-pointer hover:bg-blue-600 transition-all shadow-sm"
+                className="bg-emerald-600 text-white px-5 py-3 rounded-lg font-semibold text-lg cursor-pointer hover:bg-emerald-700 transition-all shadow-sm"
                 onClick={() => setShowCreate(true)}
               >
                 Create Grocery List
