@@ -1,7 +1,20 @@
-import React from "react";
+"use client";
 
-const Page = () => {
-  return <div>Page</div>;
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+interface RedirectProps {
+  to: string;
+}
+
+const Redirect: React.FC<RedirectProps> = ({ to }) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push("/signup");
+  }, [to, router]);
+
+  return null;
 };
 
-export default Page;
+export default Redirect;
