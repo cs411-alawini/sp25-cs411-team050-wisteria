@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const locationId = locRows[0].LocationId;
 
-  // 2) hash the password
+  // 2) hash the password - now using async version
   const hashed = await hashPassword(password);
 
   // 3) call stored procedure AddNewUser
@@ -69,11 +69,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 4) sign JWT & set cookie
+  // 4) sign JWT & set cookie - now using async version
   const [idResult] = await pool.query<IdRow[]>("SELECT LAST_INSERT_ID() as id");
   const userId = idResult[0].id;
 
-  const token = signToken({
+  // Now we await the token generation since signToken is async
+  const token = await signToken({
     userId,
   });
 
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
     httpOnly: true,
     maxAge: Number(process.env.COOKIE_MAX_AGE),
     path: "/",
+    sameSite: "lax",
   });
 
   return res;

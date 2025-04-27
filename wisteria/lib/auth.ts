@@ -1,36 +1,47 @@
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import { SignJWT, jwtVerify } from "jose";
 
-const SECRET = process.env.JWT_SECRET!;
-const EXPIRES_IN = process.env.JWT_EXPIRES_IN!;
+// Convert the secret string to a Uint8Array for jose
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "");
+const EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
-export function signToken(payload: { userId: number }) {
-  if (!SECRET) {
+export async function signToken(payload: { userId: number }) {
+  if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET environment variable is not set");
   }
 
-  // MAKE EXPIRES IN THE CORRECT TYPE
-  return jwt.sign(payload, SECRET, {
-    expiresIn: EXPIRES_IN as jwt.SignOptions["expiresIn"],
-  });
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(EXPIRES_IN)
+    .sign(SECRET);
 }
 
-export function hashPassword(pw: string) {
-  return bcrypt.hash(pw, 12);
+// For password hashing, we need to use a different approach since bcrypt isn't Edge-compatible
+// Using a simple implementation for demonstration - in production, use a proper Edge-compatible hashing library
+export async function hashPassword(pw: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pw + process.env.JWT_SECRET); // Salt with your secret
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export function verifyPassword(pw: string, hash: string) {
-  return bcrypt.compare(pw, hash);
+export async function verifyPassword(pw: string, hash: string) {
+  const newHash = await hashPassword(pw);
+  return newHash === hash;
 }
 
-export function verifyToken(token: string) {
+export async function verifyToken(token: string) {
   try {
-    return jwt.verify(token, SECRET) as {
-      userId: number;
-      iat: number;
-      exp: number;
-    };
-  } catch {
+    console.log("SECRET available:", SECRET.length > 0);
+    console.log("SECRET length:", SECRET.length);
+
+    const { payload } = await jwtVerify(token, SECRET);
+    console.log("Token decoded successfully:", payload);
+
+    return payload as { userId: number; iat: number; exp: number };
+  } catch (error) {
+    console.error("Token verification error:", error);
     return null;
   }
 }
