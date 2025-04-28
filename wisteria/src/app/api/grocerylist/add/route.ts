@@ -4,12 +4,17 @@ import pool from "../../../../../lib/db";
 
 export async function POST(req: NextRequest) {
   try {
-    const { productId, quantity } = await req.json();
+    // ── 1. Parse & validate body ───────────────────────────────
+    const { productId, quantity, locationId, glId } = await req.json();
 
-    if (!productId || !quantity) {
-      return NextResponse.json({ error: "Missing productId or quantity." }, { status: 400 });
+    if (!productId || !quantity || !locationId || !glId) {
+      return NextResponse.json(
+        { error: "Missing productId, quantity, locationId or glId." },
+        { status: 400 }
+      );
     }
 
+    // ── 2. Validate user from cookie ───────────────────────────
     const userIdCookie = req.cookies.get("userId")?.value;
     if (!userIdCookie) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -20,32 +25,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid userId." }, { status: 400 });
     }
 
+    // ── 3. Insert or reject duplicate ──────────────────────────
     try {
-      await pool.query(`
-        INSERT INTO groceryProduct (UserId, ProductId, Quantity)
-        VALUES (?, ?, ?)
-      `, [userId, productId, quantity]);
-    } catch (insertError: any) {
-      if (insertError.code === 'ER_DUP_ENTRY') {
-        return NextResponse.json({ error: "Product already exists in your list." }, { status: 409 });
-      } else {
-        console.error("Unexpected insert error:", insertError);
-        throw insertError;
+      await pool.query(
+        `
+        INSERT INTO groceryProduct
+          (glId, UserId, ProductId, Quantity, LocationId)
+        VALUES (?, ?, ?, ?, ?);
+        `,
+        [glId, userId, productId, quantity, locationId]
+      );
+    } catch (err: any) {
+      if (err.code === "ER_DUP_ENTRY") {
+        return NextResponse.json(
+          { error: "Product already exists in this grocery list." },
+          { status: 409 }
+        );
       }
+      console.error("Insert error:", err);
+      throw err;
     }
 
-    // Fetch updated grocery list
-    const [groceryListRows] = await pool.query<any[]>(`
-      CALL GetGroceryListWithEnvironmentalCostAndFuel(?)
-    `, [userId]);
+    // ── 4. Return the fresh grocery-list snapshot ──────────────
+    const [resultSets] = await pool.query<any[]>(
+      `CALL GetGroceryListWithEnvironmentalCostAndFuel(?, ?)`,
+      [userId, glId]
+    );
 
-    return NextResponse.json({
-      success: true,
-      products: groceryListRows[0],  // Get the first result array
-    }, { status: 200 });
-
+    return NextResponse.json(
+      { success: true, products: resultSets[0] },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("Error adding product:", error);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    console.error("Error in POST /api/grocerylist/add:", error);
+    return NextResponse.json(
+      { error: "Internal server error." },
+      { status: 500 }
+    );
   }
 }

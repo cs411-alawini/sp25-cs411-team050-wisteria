@@ -15,8 +15,10 @@ interface Product {
   TotalEmissions: number;
   FuelUsageGallons: number;
 }
-import dynamic from 'next/dynamic';
-const ClientMap = dynamic(() => import('@/components/ClientMap'), { ssr: false });
+import dynamic from "next/dynamic";
+const ClientMap = dynamic(() => import("@/components/ClientMap"), {
+  ssr: false,
+});
 
 const groceryLists = [
   "Weekly Shopping",
@@ -29,7 +31,10 @@ export default function Home() {
   const [openList, setOpenList] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("");
@@ -62,7 +67,11 @@ export default function Home() {
       setError("");
 
       // Set user location if present in the response
-      if (data.userLocation && data.userLocation.latitude && data.userLocation.longitude) {
+      if (
+        data.userLocation &&
+        data.userLocation.latitude &&
+        data.userLocation.longitude
+      ) {
         setUserLocation({
           latitude: data.userLocation.latitude,
           longitude: data.userLocation.longitude,
@@ -127,10 +136,10 @@ export default function Home() {
           {/* Error Message */}
           {error && <div className="text-red-600 mb-4">{error}</div>}
 
-          {/* No Products Found */}
+          {/* No Products Found
           {!error && products.length === 0 && keyword && (
             <div className="text-gray-600 mb-4">No matching products found.</div>
-          )}
+          )} */}
 
           {/* Dropdown if multiple products */}
           {products.length > 1 && (
@@ -142,11 +151,13 @@ export default function Home() {
               >
                 <option value="">Select a product</option>
                 {products.map((product, idx) => (
-                  <option key={`${product.ProductName}-${idx}`} value={product.ProductName}>
+                  <option
+                    key={`${product.ProductName}-${idx}`}
+                    value={product.ProductName}
+                  >
                     {product.ProductName}
                   </option>
                 ))}
-
               </select>
             </div>
           )}
@@ -160,27 +171,49 @@ export default function Home() {
               </h2>
 
               <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-                <h3 className="text-2xl font-bold mb-4">{selectedProduct.ProductName}</h3>
+                <h3 className="text-2xl font-bold mb-4">
+                  {selectedProduct.ProductName}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <div className="text-gray-600 text-sm">Carbon Footprint (kg CO₂/kg)</div>
-                    <div className="text-2xl font-semibold">{selectedProduct.CarbonFootprint_per_kg}</div>
+                    <div className="text-gray-600 text-sm">
+                      Carbon Footprint (kg CO₂/kg)
+                    </div>
+                    <div className="text-2xl font-semibold">
+                      {selectedProduct.CarbonFootprint_per_kg}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-gray-600 text-sm">Land Use (m²/kg)</div>
-                    <div className="text-2xl font-semibold">{selectedProduct.LandUse_per_kg}</div>
+                    <div className="text-gray-600 text-sm">
+                      Land Use (m²/kg)
+                    </div>
+                    <div className="text-2xl font-semibold">
+                      {selectedProduct.LandUse_per_kg}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-gray-600 text-sm">Water Use (liters/kg)</div>
-                    <div className="text-2xl font-semibold">{selectedProduct.WaterUse_per_kg}</div>
+                    <div className="text-gray-600 text-sm">
+                      Water Use (liters/kg)
+                    </div>
+                    <div className="text-2xl font-semibold">
+                      {selectedProduct.WaterUse_per_kg}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-gray-600 text-sm">Total Emissions (kg CO₂)</div>
-                    <div className="text-2xl font-semibold">{selectedProduct.TotalEmissions}</div>
+                    <div className="text-gray-600 text-sm">
+                      Total Emissions (kg CO₂)
+                    </div>
+                    <div className="text-2xl font-semibold">
+                      {selectedProduct.TotalEmissions}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-gray-600 text-sm">Fuel Usage (gallons)</div>
-                    <div className="text-2xl font-semibold">{selectedProduct.FuelUsageGallons}</div>
+                    <div className="text-gray-600 text-sm">
+                      Fuel Usage (gallons)
+                    </div>
+                    <div className="text-2xl font-semibold">
+                      {selectedProduct.FuelUsageGallons}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -198,7 +231,7 @@ export default function Home() {
               {/* {selectedProduct && selectedProduct.Location && userLocation ? (
                 <ClientMap selectedProduct={selectedProduct} userLocation={userLocation} />
               ) : ( */}
-                <span className="text-gray-500">Map visualization area</span>
+              <span className="text-gray-500">Map visualization area</span>
               {/* )} */}
             </div>
           </section>
@@ -206,7 +239,9 @@ export default function Home() {
           {/* Grocery List Link */}
           <section className="mt-8 w-full bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-blue-900">GROCERY LISTS</h2>
+              <h2 className="text-2xl font-bold text-blue-900">
+                GROCERY LISTS
+              </h2>
               <Link
                 href="/lists" // Navigate to the /lists page
                 className="bg-emerald-600 text-white px-5 py-3 rounded-lg font-semibold text-lg cursor-pointer hover:bg-emerald-700 transition-all shadow-sm"
