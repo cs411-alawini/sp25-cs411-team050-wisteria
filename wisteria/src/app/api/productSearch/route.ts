@@ -12,18 +12,18 @@ interface ProductRow {
   TotalEmissions: number;
   DistanceMiles: number;
   FuelUsageGallons: number;
-  Latitude: number;
-  Longitude: number;
+  // Latitude: number;
+  // Longitude: number;
 }
 
 type ProductRowPacket = ProductRow & RowDataPacket;
 
-interface LocationRow {
-  Latitude: number;
-  Longitude: number;
-}
+// interface LocationRow {
+//   Latitude: number;
+//   Longitude: number;
+// }
 
-type LocationRowPacket = LocationRow & RowDataPacket;
+// type LocationRowPacket = LocationRow & RowDataPacket;
 
 export async function POST(req: NextRequest) {
   try {
@@ -67,24 +67,24 @@ export async function POST(req: NextRequest) {
     }));
 
     // 2) Fetch user's location
-    const [userLocationRows] = await pool.query<LocationRowPacket[]>(
-      `SELECT l.Latitude, l.Longitude
-       FROM userData u
-       JOIN locationData l ON u.UserLocationId = l.LocationId
-       WHERE u.UserId = ?`,
-      [userId]
-    );
+    // const [userLocationRows] = await pool.query<LocationRowPacket[]>(
+    //   `SELECT l.Latitude, l.Longitude
+    //    FROM userData u
+    //    JOIN locationData l ON u.UserLocationId = l.LocationId
+    //    WHERE u.UserId = ?`,
+    //   [userId]
+    // );
 
-    if (userLocationRows.length === 0) {
-      return NextResponse.json({ error: "User location not found" }, { status: 404 });
-    }
+    // if (userLocationRows.length === 0) {
+    //   return NextResponse.json({ error: "User location not found" }, { status: 404 });
+    // }
 
-    const { Latitude, Longitude } = userLocationRows[0];
+    // const { Latitude, Longitude } = userLocationRows[0];
 
     // 3) Return both products and user location
     return NextResponse.json({
       products,
-      userLocation: { latitude: Latitude, longitude: Longitude }
+      // userLocation: { latitude: Latitude, longitude: Longitude }
     }, { status: 200 });
 
   } catch (error) {

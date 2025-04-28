@@ -195,11 +195,11 @@ export default function Home() {
               Food Source Locations
             </h3>
             <div className="w-full h-[280px] bg-gray-50 border border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              {selectedProduct && selectedProduct.Location && userLocation ? (
+              {/* {selectedProduct && selectedProduct.Location && userLocation ? (
                 <ClientMap selectedProduct={selectedProduct} userLocation={userLocation} />
-              ) : (
+              ) : ( */}
                 <span className="text-gray-500">Map visualization area</span>
-              )}
+              {/* )} */}
             </div>
           </section>
 
