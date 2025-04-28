@@ -4,21 +4,25 @@ import pool from "../../../../lib/db";
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.cookies.get("userId")?.value;
-    if (!userId) {
-      return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
+    const userIdCookie = req.cookies.get("userId")?.value;
+    if (!userIdCookie) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const [rows] = await pool.query(
-      `CALL GetGroceryListWithEnvironmentalCostAndFuel(?)`,
-      [userId]
-    );
-
-    if (!rows || rows[0].length === 0) {
-      return NextResponse.json({ products: [] }, { status: 200 });  // no products yet is fine
+    const userId = Number(userIdCookie);
+    if (Number.isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid userId." }, { status: 400 });
     }
 
-    return NextResponse.json({ products: rows[0] }, { status: 200 }); // <-- rows[0] here!
+    const [groceryListRows] = await pool.query<any[]>(`
+      CALL GetGroceryListWithEnvironmentalCostAndFuel(?)
+    `, [userId]);
+
+    return NextResponse.json({
+      success: true,
+      products: groceryListRows[0],  // <--- Remember CALL returns an array of arrays
+    }, { status: 200 });
+
   } catch (error) {
     console.error("Error fetching grocery list:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
