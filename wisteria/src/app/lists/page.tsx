@@ -46,6 +46,7 @@ export default function GroceryListPage() {
     try {
       const response = await fetch("/api/grocerylist");
       const data = await response.json();
+      console.log("API /api/grocerylist responded with:", data);  // <-- ADD THIS
       if (data.products) {
         setProducts(data.products);
       }
@@ -158,6 +159,7 @@ export default function GroceryListPage() {
   const totalFuelUsage = products.reduce((acc, product) => acc + (product.FuelUsageGallons || 0), 0);
 
   if (!hasMounted) {
+    console.log("Products fetched:", products);
     return null;
   }
 
@@ -255,42 +257,43 @@ export default function GroceryListPage() {
 
             {products.length > 0 ? (
               <table className="w-full text-left text-gray-800">
-                <thead>
-                  <tr className="border-b">
-                    <th className="pb-3 font-semibold">Product</th>
-                    <th className="pb-3 font-semibold">Location</th>
-                    <th className="pb-3 font-semibold">Emissions (kg CO₂)</th>
-                    <th className="pb-3 font-semibold">Fuel Usage (gallons)</th>
-                    <th className="pb-3 font-semibold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => (
-                    <tr key={product.ProductName} className="border-b">
-                      <td className="py-4">{product.ProductName}</td>
-                      <td className="py-4">{product.Location}</td>
-                      <td className="py-4">
-                        {typeof product.TotalEmissions === "number"
-                          ? product.TotalEmissions.toFixed(2)
-                          : "0.00"}
-                      </td>
-                      <td className="py-4">
-                        {typeof product.FuelUsageGallons === "number"
-                          ? product.FuelUsageGallons.toFixed(2)
-                          : "0.00"}
-                      </td>
+          <thead>
+            <tr className="border-b">
+              <th className="pb-3 font-semibold">Product</th>
+              <th className="pb-3 font-semibold">Location</th>
+              <th className="pb-3 font-semibold">Total Emissions (kg CO₂)</th>
+              <th className="pb-3 font-semibold">Fuel Usage (gallons)</th>
+              <th className="pb-3 font-semibold"></th> {/* Blank column for Delete Button */}
+            </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.ProductName} className="border-b">
+                  <td className="py-4">{product.ProductName}</td>
+                  <td className="py-4">{product.LocationName}</td>
+                  <td className="py-4">
+                    {typeof product.TotalProductEC === "number"
+                      ? product.TotalProductEC.toFixed(2)
+                      : "0.00"}
+                  </td>
+                  <td className="py-4">
+                    {typeof product.EstimatedFuelGallons === "number"
+                      ? product.EstimatedFuelGallons.toFixed(2)
+                      : "0.00"}
+                  </td>
+                  <td className="py-4 text-center">
+                    <button
+                      onClick={() => deleteProduct(product.ProductName)}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
 
-                      <td className="py-4">
-                        <button
-                          onClick={() => deleteProduct(product.ProductName)}
-                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+
               </table>
             ) : (
               <p className="text-gray-600 text-center py-10">No products added yet.</p>
