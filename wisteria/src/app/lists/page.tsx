@@ -3,11 +3,19 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 
+interface Location {
+  LocationId: number;
+  City: string;
+  Country: string;
+  Latitude: number;
+  Longitude: number;
+}
+
 interface GroceryProduct {
   UserId: number;
   ProductId: number;
   ProductName: string;
-  LocationName: string;
+  LocationId: number; // Changed from LocationName to LocationId
   TotalProductEC: number | string;
   EstimatedFuelGallons: number;
 }
@@ -22,6 +30,7 @@ export default function GroceryListPage() {
   const [selectedGlId, setSelectedGlId] = useState<number | null>(null);
   const [manualGlId, setManualGlId] = useState<string>("");
   const [products, setProducts] = useState<GroceryProduct[]>([]);
+  const [locations, setLocations] = useState<Record<number, Location>>({});
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
 
@@ -75,6 +84,37 @@ export default function GroceryListPage() {
     setManualGlId("1");
   };
 
+  // New function to fetch location data for a list of location IDs
+  const fetchLocationData = async (locationIds: number[]) => {
+    if (locationIds.length === 0) return;
+
+    try {
+      const uniqueIds = [...new Set(locationIds)];
+      const res = await fetch("/api/locations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locationIds: uniqueIds }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.locations) {
+        // Convert array to object with LocationId as keys
+        const locationMap: Record<number, Location> = {};
+        data.locations.forEach((loc: Location) => {
+          locationMap[loc.LocationId] = loc;
+        });
+
+        setLocations((prevLocations) => ({
+          ...prevLocations,
+          ...locationMap,
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch location data", err);
+    }
+  };
+
   const fetchGroceryList = async (glId: number) => {
     try {
       const res = await fetch(`/api/grocerylist?glId=${glId}`);
@@ -82,6 +122,14 @@ export default function GroceryListPage() {
 
       if (data.success && data.products) {
         setProducts(data.products);
+
+        // Extract location IDs from products and fetch location data
+        const locationIds = data.products
+          .map((p: GroceryProduct) => p.LocationId)
+          .filter((id: number) => id);
+
+        fetchLocationData(locationIds);
+
         setError("");
       } else {
         setProducts([]);
@@ -165,6 +213,13 @@ export default function GroceryListPage() {
         if (data.products) {
           // If the API returns the updated products, use them
           setProducts(data.products);
+
+          // Extract location IDs from products and fetch location data
+          const locationIds = data.products
+            .map((p: GroceryProduct) => p.LocationId)
+            .filter((id: number) => id);
+
+          fetchLocationData(locationIds);
         } else {
           // Otherwise, fetch the updated list
           fetchGroceryList(targetGlId);
@@ -211,6 +266,13 @@ export default function GroceryListPage() {
         if (data.products) {
           // If the API returns the updated products, use them
           setProducts(data.products);
+
+          // Extract location IDs from products and fetch location data
+          const locationIds = data.products
+            .map((p: GroceryProduct) => p.LocationId)
+            .filter((id: number) => id);
+
+          fetchLocationData(locationIds);
         } else {
           // Otherwise, fetch the updated list
           fetchGroceryList(selectedGlId);
@@ -257,6 +319,16 @@ export default function GroceryListPage() {
     if (!isNaN(numValue) && numValue >= 1 && numValue <= 10) {
       setSelectedGlId(numValue);
     }
+  };
+
+  // Function to get location display string
+  const getLocationDisplay = (locationId: number) => {
+    const location = locations[locationId];
+    if (!location) return "Loading...";
+
+    return `${
+      location.City && location.City.length > 0 ? `${location.City}, ` : ""
+    }${location.Country || "Unknown Country"}`;
   };
 
   // Calculate totals using the correct field names from the API response
@@ -434,14 +506,19 @@ export default function GroceryListPage() {
                   {products.map((product, index) => (
                     <tr key={index} className="border-b">
                       <td className="py-4">{product.ProductName}</td>
-                      <td className="py-4">{product.LocationName}</td>
+                      <td className="py-4">
+                        {getLocationDisplay(product.LocationId)}
+                      </td>
                       <td className="py-4">
                         {typeof product.TotalProductEC === "string"
                           ? parseFloat(product.TotalProductEC).toFixed(2)
                           : product.TotalProductEC.toFixed(2)}
                       </td>
                       <td className="py-4">
-                        {product.EstimatedFuelGallons.toFixed(2)}
+                        {product.EstimatedFuelGallons !== undefined &&
+                        product.EstimatedFuelGallons !== null
+                          ? product.EstimatedFuelGallons.toFixed(2)
+                          : "0.00"}
                       </td>
                       <td className="py-4">
                         <button
