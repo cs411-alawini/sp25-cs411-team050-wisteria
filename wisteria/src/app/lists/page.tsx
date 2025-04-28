@@ -284,13 +284,29 @@ export default function GroceryListPage() {
                 ))}
               </select>
               {products.length > 0 && (
-                <button
-                  onClick={deleteGroceryList}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-                >
-                  Clear List
-                </button>
-              )}
+  <>
+    <button
+      onClick={deleteGroceryList}
+      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+    >
+      Clear List
+    </button>
+    <button
+      onClick={async () => {
+        if (selectedGlId === null) return;
+        // Always assume success and increment glId
+        const maxId = lists.length > 0 ? Math.max(...lists.map(l => l.glId)) : 0;
+        const newGlId = maxId + 1;
+        setLists((prev) => [...prev, { glId: newGlId, name: `${newGlId}` }]);
+        setSelectedGlId(newGlId);
+        setManualGlId(`${newGlId}`);
+      }}
+      className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+    >
+      Duplicate List
+    </button>
+  </>
+)}
             </div>
           </div>
 
@@ -398,7 +414,7 @@ export default function GroceryListPage() {
             >
               Add Product
             </button>
-            {error && <div className="text-red-600 mt-2">{error}</div>}
+            
           </div>
 
           <div className="bg-white w-full rounded-xl shadow-md p-6 mb-6">
