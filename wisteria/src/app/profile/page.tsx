@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import "./profile-buttons.css";
 import Navbar from "@/components/navbar";
 
 interface UserProfile {
@@ -150,7 +151,7 @@ export default function ProfilePage() {
       <main className="p-8 flex flex-col items-center">
         <div className="w-full max-w-2xl flex flex-col gap-8">
           <section className="mb-8 bg-white p-8 rounded-xl shadow border">
-            <h2 className="text-3xl font-bold mb-6">Profile</h2>
+            <h2 className="text-3xl font-bold mb-6 text-emerald-900">Profile</h2>
 
             {/* Name */}
             <div className="flex items-center gap-6 mb-4">
@@ -166,7 +167,7 @@ export default function ProfilePage() {
                   <button onClick={handleSave} className="btn">
                     Save
                   </button>
-                  <button onClick={handleCancel} className="btn-gray">
+                  <button onClick={handleCancel} className="btn-gray" style={{ color: "red" }}>
                     Cancel
                   </button>
                 </>
@@ -177,6 +178,7 @@ export default function ProfilePage() {
                     onClick={() => handleEdit("name")}
                     disabled={!!editField}
                     className="btn"
+                    style={{ color: "#23890a" }}
                   >
                     Edit
                   </button>
@@ -198,7 +200,7 @@ export default function ProfilePage() {
                   <button onClick={handleSave} className="btn">
                     Save
                   </button>
-                  <button onClick={handleCancel} className="btn-gray">
+                  <button onClick={handleCancel} className="btn-gray" style={{ color: "red" }}>
                     Cancel
                   </button>
                 </>
@@ -209,6 +211,7 @@ export default function ProfilePage() {
                     onClick={() => handleEdit("email")}
                     disabled={!!editField}
                     className="btn"
+                    style={{ color: "#23890a" }}
                   >
                     Edit
                   </button>
@@ -230,7 +233,7 @@ export default function ProfilePage() {
                   <button onClick={handleSave} className="btn">
                     Save
                   </button>
-                  <button onClick={handleCancel} className="btn-gray">
+                  <button onClick={handleCancel} className="btn-gray" style={{ color: "red" }}>
                     Cancel
                   </button>
                 </>
@@ -241,6 +244,7 @@ export default function ProfilePage() {
                     onClick={() => handleEdit("location")}
                     disabled={!!editField}
                     className="btn"
+                    style={{ color: "#23890a" }}
                   >
                     Edit
                   </button>
@@ -250,7 +254,7 @@ export default function ProfilePage() {
 
             {/* Password Reset */}
             <div className="mt-8 text-center">
-              <button onClick={() => setShowReset((v) => !v)} className="btn">
+              <button onClick={() => setShowReset((v) => !v)} className="btn" style={{ color: "red" }}>
                 {showReset ? "Cancel" : "Reset Password"}
               </button>
               {showReset && (
