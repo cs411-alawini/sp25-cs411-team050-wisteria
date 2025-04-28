@@ -192,35 +192,21 @@ export default function GroceryListPage() {
 
   const deleteProduct = async (productId: number) => {
     if (selectedGlId === null) return;
-
+    console.log("Deleting product", { glId: selectedGlId, productId }); 
     try {
-      const payload = {
-        productId,
-        glId: selectedGlId,
-      };
-
       const res = await fetch("/api/grocerylist/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ glId: selectedGlId, productId }),
       });
-
-      const data = await res.json();
-
+      const data: any = await res.json();
       if (data.success) {
-        if (data.products) {
-          // If the API returns the updated products, use them
-          setProducts(data.products);
-        } else {
-          // Otherwise, fetch the updated list
-          fetchGroceryList(selectedGlId);
-        }
+        fetchGroceryList(selectedGlId);
       } else {
-        setError(data.error || "Failed to delete product");
+        setError(data.error || "Failed to delete product.");
       }
-    } catch (err) {
-      console.error("Failed to delete product", err);
-      setError("Failed to delete product");
+    } catch {
+      setError("Failed to delete product.");
     }
   };
 
