@@ -16,6 +16,8 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [city, setCity] = useState("");
 
+  const [grocList, setGrocList] = useState(false);
+
   const [country, setCountry] = useState("");
 
   const router = useRouter();
@@ -273,6 +275,7 @@ export default function SignUp() {
               <input
                 id="remember-me"
                 name="remember-me"
+                onChange={(e) => setGrocList(e.target.checked)}
                 type="checkbox"
                 className="h-4 w-4 text-blue-500 focus:ring-blue-400 border-slate-300 rounded"
               />
