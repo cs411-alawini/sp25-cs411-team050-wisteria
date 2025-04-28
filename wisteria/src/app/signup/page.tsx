@@ -35,6 +35,18 @@ export default function SignUp() {
     }
     setLoading(true);
 
+    console.log(
+      JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        city,
+        country,
+        g: grocList ? 1 : 0,
+      })
+    );
+
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,6 +58,7 @@ export default function SignUp() {
         password,
         city,
         country,
+        grocList: grocList ? 1 : 0,
       }),
     });
 

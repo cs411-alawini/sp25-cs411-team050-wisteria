@@ -82,12 +82,12 @@ const Navbar = () => {
         >
           Dashboard
         </Link>
-        <a
-          href="/home"
+        <Link
+          href="/lists"
           className="text-gray-700 hover:text-blue-700 font-medium"
         >
           Lists
-        </a>
+        </Link>
         <div className="relative">
           <button
             ref={buttonRef}
