@@ -6,6 +6,7 @@ import {} from "react-icons/ri";
 import { FaGasPump, FaTint } from "react-icons/fa";
 import { AiOutlinePlus } from "react-icons/ai";
 import { BiCloudLightning, BiShare } from "react-icons/bi";
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 
 const groceryLists = [
   "Weekly Shopping",
