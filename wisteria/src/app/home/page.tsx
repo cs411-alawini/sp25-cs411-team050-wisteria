@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import Navbar from "@/components/navbar";
+import { BiCloudLightning } from "react-icons/bi";
 import { FaGasPump, FaTint } from "react-icons/fa";
-import { BiCloudLightning, BiShare } from "react-icons/bi";
 import { AiOutlinePlus } from "react-icons/ai";
+import Link from "next/link"; // Import Link from Next.js
 
 interface Product {
   ProductName: string;
@@ -13,10 +14,6 @@ interface Product {
   WaterUse_per_kg: number;
   TotalEmissions: number;
   FuelUsageGallons: number;
-  Location: {
-    latitude: number;
-    longitude: number;
-  };
 }
 import dynamic from 'next/dynamic';
 const ClientMap = dynamic(() => import('@/components/ClientMap'), { ssr: false });
@@ -135,7 +132,6 @@ export default function Home() {
             <div className="text-gray-600 mb-4">No matching products found.</div>
           )}
 
-
           {/* Dropdown if multiple products */}
           {products.length > 1 && (
             <div className="mb-6 w-full">
@@ -190,8 +186,8 @@ export default function Home() {
             </section>
           )}
 
-          {console.log("selectedProduct", selectedProduct)}
-          {console.log("userLocation", userLocation)}
+          {/* {console.log("selectedProduct", selectedProduct)}
+          {console.log("userLocation", userLocation)} */}
           {/* Map Section */}
           <section className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center min-h-[350px] shadow-sm">
             <h3 className="text-xl font-semibold text-blue-900 mb-4">
@@ -206,86 +202,18 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Grocery List Section */}
+          {/* Grocery List Link */}
           <section className="mt-8 w-full bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-blue-900">GROCERY LISTS</h2>
-              <button
+              <Link
+                href="/lists" // Navigate to the /lists page
                 className="bg-emerald-600 text-white px-5 py-3 rounded-lg font-semibold text-lg cursor-pointer hover:bg-emerald-700 transition-all shadow-sm"
-                onClick={() => setShowCreate(true)}
               >
-                Create Grocery List
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-4">
-              {groceryLists.map((list, idx) => (
-                <button
-                  key={list}
-                  className="border-2 border-gray-200 rounded-xl py-6 text-xl font-semibold text-gray-800 hover:bg-blue-50 hover:border-blue-300 transition-all shadow-sm"
-                  onClick={() => setOpenList(idx)}
-                >
-                  {list}
-                </button>
-              ))}
+                View Grocery Lists
+              </Link>
             </div>
           </section>
-
-          {/* Modals */}
-          {openList !== null && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full">
-                <h3 className="text-2xl font-bold mb-4 text-blue-900">
-                  {groceryLists[openList]}
-                </h3>
-                <p className="mb-6 text-gray-700">
-                  [Grocery list details and actions go here]
-                </p>
-                <div className="flex justify-end gap-3">
-                  <button
-                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all"
-                    onClick={() => setOpenList(null)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all"
-                    onClick={() => setOpenList(null)}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showCreate && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full">
-                <h3 className="text-2xl font-bold mb-4 text-blue-900">
-                  Create Grocery List
-                </h3>
-                <input
-                  type="text"
-                  placeholder="List Name"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <div className="flex justify-end gap-3">
-                  <button
-                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all"
-                    onClick={() => setShowCreate(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all"
-                    onClick={() => setShowCreate(false)}
-                  >
-                    Create
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </main>
     </div>
