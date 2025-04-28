@@ -5,7 +5,7 @@ import Navbar from "@/components/navbar";
 
 interface GroceryProduct {
   UserId: number;
-  ProductId?: number;
+  ProductId: number;
   ProductName: string;
   LocationName: string;
   TotalProductEC: number | string;
@@ -431,9 +431,7 @@ export default function GroceryListPage() {
                       </td>
                       <td className="py-4">
                         <button
-                          onClick={() =>
-                            deleteProduct(product.ProductId || index)
-                          }
+                          onClick={() => deleteProduct(product.ProductId)}
                           className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
                         >
                           Delete

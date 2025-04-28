@@ -28,6 +28,23 @@ const groceryLists = [
 ];
 
 export default function Home() {
+  // Fetch user location from cookie-based API on mount
+  React.useEffect(() => {
+    async function fetchUserLocation() {
+      try {
+        const res = await fetch("/api/userLocation");
+        if (res.ok) {
+          const data = await res.json();
+          setUserLocation({ latitude: data.latitude, longitude: data.longitude });
+          // console.log("Fetched userLocation from API:", data.latitude, data.longitude);
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    }
+    fetchUserLocation();
+  }, []);
+  const [searchedLocation, setSearchedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [openList, setOpenList] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -76,6 +93,7 @@ export default function Home() {
           latitude: data.userLocation.latitude,
           longitude: data.userLocation.longitude,
         });
+        // console.log("UserLocation", data.userLocation.latitude, data.userLocation.longitude);
       }
 
       if (data.products.length === 1) {
@@ -83,9 +101,28 @@ export default function Home() {
       } else {
         setSelectedProductName("");
       }
+
+      // Lookup searched location coordinates from backend
+      try {
+        const locRes = await fetch("/api/locationLookup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ city, country }),
+        });
+        if (locRes.ok) {
+          const locData = await locRes.json();
+          setSearchedLocation({ latitude: locData.latitude, longitude: locData.longitude });
+          // console.log("SearchedLocation", locData.latitude, locData.longitude);
+        } else {
+          setSearchedLocation(null);
+        }
+      } catch (err) {
+        setSearchedLocation(null);
+      }
     } catch (err) {
       console.error("Failed to fetch products:", err);
       setError("Network error");
+      setSearchedLocation(null);
     }
   };
 
@@ -227,12 +264,12 @@ export default function Home() {
             <h3 className="text-xl font-semibold text-blue-900 mb-4">
               Food Source Locations
             </h3>
-            <div className="w-full h-[280px] bg-gray-50 border border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              {/* {selectedProduct && selectedProduct.Location && userLocation ? (
-                <ClientMap selectedProduct={selectedProduct} userLocation={userLocation} />
-              ) : ( */}
-              <span className="text-gray-500">Map visualization area</span>
-              {/* )} */}
+            <div className="w-full h-[500px] bg-gray-50 border border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+              {searchedLocation && userLocation ? (
+                <ClientMap searchedLocation={searchedLocation} userLocation={userLocation} />
+              ) : (
+                <span className="text-gray-500">Map visualization area</span>
+              )}
             </div>
           </section>
 
