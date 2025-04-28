@@ -11,9 +11,18 @@ interface ProductRow {
   TotalEmissions: number;
   DistanceMiles: number;
   FuelUsageGallons: number;
+  Latitude: number;
+  Longitude: number;
 }
 
 type ProductRowPacket = ProductRow & RowDataPacket;
+
+interface LocationRow {
+  Latitude: number;
+  Longitude: number;
+}
+
+type LocationRowPacket = LocationRow & RowDataPacket;
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,14 +32,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing keyword or country" }, { status: 400 });
     }
 
+    const userIdCookie = req.cookies.get("userId")?.value;
+    if (!userIdCookie) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const userId = Number(userIdCookie);
+    if (Number.isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid userId" }, { status: 400 });
+    }
+
+    // 1) Search products
     const [resultSets] = await pool.query<ProductRowPacket[][]>(
       `CALL SearchProductsWithDistance(?, ?, ?)`,
       [keyword, city || null, country]
     );
 
-    const products = Array.isArray(resultSets) ? resultSets[0] : [];
+    const productsRaw = Array.isArray(resultSets) ? resultSets[0] : [];
 
-    return NextResponse.json({ products }, { status: 200 });
+    const products = productsRaw.map((product) => ({
+      ...product,
+      Location: {
+        latitude: product.Latitude,
+        longitude: product.Longitude,
+      },
+    }));
+
+    // 2) Fetch user's location
+    const [userLocationRows] = await pool.query<LocationRowPacket[]>(
+      `SELECT l.Latitude, l.Longitude
+       FROM userData u
+       JOIN locationData l ON u.UserLocationId = l.LocationId
+       WHERE u.UserId = ?`,
+      [userId]
+    );
+
+    if (userLocationRows.length === 0) {
+      return NextResponse.json({ error: "User location not found" }, { status: 404 });
+    }
+
+    const { Latitude, Longitude } = userLocationRows[0];
+
+    // 3) Return both products and user location
+    return NextResponse.json({
+      products,
+      userLocation: { latitude: Latitude, longitude: Longitude }
+    }, { status: 200 });
 
   } catch (error) {
     console.error("Error searching products:", error);

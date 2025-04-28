@@ -13,8 +13,13 @@ interface Product {
   WaterUse_per_kg: number;
   TotalEmissions: number;
   FuelUsageGallons: number;
+  Location: {
+    latitude: number;
+    longitude: number;
+  };
 }
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import dynamic from 'next/dynamic';
+const ClientMap = dynamic(() => import('@/components/ClientMap'), { ssr: false });
 
 const groceryLists = [
   "Weekly Shopping",
@@ -26,6 +31,8 @@ const groceryLists = [
 export default function Home() {
   const [openList, setOpenList] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("");
@@ -56,6 +63,14 @@ export default function Home() {
       const data = await response.json();
       setProducts(data.products);
       setError("");
+
+      // Set user location if present in the response
+      if (data.userLocation && data.userLocation.latitude && data.userLocation.longitude) {
+        setUserLocation({
+          latitude: data.userLocation.latitude,
+          longitude: data.userLocation.longitude,
+        });
+      }
 
       if (data.products.length === 1) {
         setSelectedProductName(data.products[0].ProductName);
@@ -175,13 +190,19 @@ export default function Home() {
             </section>
           )}
 
+          {console.log("selectedProduct", selectedProduct)}
+          {console.log("userLocation", userLocation)}
           {/* Map Section */}
           <section className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center min-h-[350px] shadow-sm">
             <h3 className="text-xl font-semibold text-blue-900 mb-4">
               Food Source Locations
             </h3>
             <div className="w-full h-[280px] bg-gray-50 border border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              <span className="text-gray-500">Map visualization area</span>
+              {selectedProduct && selectedProduct.Location && userLocation ? (
+                <ClientMap selectedProduct={selectedProduct} userLocation={userLocation} />
+              ) : (
+                <span className="text-gray-500">Map visualization area</span>
+              )}
             </div>
           </section>
 
