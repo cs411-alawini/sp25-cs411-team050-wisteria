@@ -28,6 +28,7 @@ const groceryLists = [
 ];
 
 export default function Home() {
+  const [searchedLocation, setSearchedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [openList, setOpenList] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -42,6 +43,23 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductName, setSelectedProductName] = useState<string>("");
   const [error, setError] = useState("");
+
+  // Geocode city/country to lat/lon using OpenStreetMap Nominatim
+  const geocodeLocation = async (city: string, country: string) => {
+    if (!city && !country) return null;
+    const query = encodeURIComponent([city, country].filter(Boolean).join(", "));
+    const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
+    try {
+      const res = await fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'wisteria-app-demo' } });
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return { latitude: parseFloat(data[0].lat), longitude: parseFloat(data[0].lon) };
+      }
+    } catch (err) {
+      console.error('Geocoding error:', err);
+    }
+    return null;
+  };
 
   const searchProducts = async () => {
     try {
@@ -83,9 +101,14 @@ export default function Home() {
       } else {
         setSelectedProductName("");
       }
+
+      // Geocode the searched location
+      const loc = await geocodeLocation(city, country);
+      setSearchedLocation(loc);
     } catch (err) {
       console.error("Failed to fetch products:", err);
       setError("Network error");
+      setSearchedLocation(null);
     }
   };
 
@@ -220,19 +243,17 @@ export default function Home() {
             </section>
           )}
 
-          {/* {console.log("selectedProduct", selectedProduct)}
-          {console.log("userLocation", userLocation)} */}
           {/* Map Section */}
           <section className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center min-h-[350px] shadow-sm">
             <h3 className="text-xl font-semibold text-blue-900 mb-4">
               Food Source Locations
             </h3>
             <div className="w-full h-[280px] bg-gray-50 border border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              {/* {selectedProduct && selectedProduct.Location && userLocation ? (
-                <ClientMap selectedProduct={selectedProduct} userLocation={userLocation} />
-              ) : ( */}
-              <span className="text-gray-500">Map visualization area</span>
-              {/* )} */}
+              {searchedLocation && userLocation ? (
+                <ClientMap searchedLocation={searchedLocation} userLocation={userLocation} />
+              ) : (
+                <span className="text-gray-500">Map visualization area</span>
+              )}
             </div>
           </section>
 
