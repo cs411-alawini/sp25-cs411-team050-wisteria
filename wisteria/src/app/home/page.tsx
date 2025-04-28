@@ -28,6 +28,22 @@ const groceryLists = [
 ];
 
 export default function Home() {
+  // Fetch user location from cookie-based API on mount
+  React.useEffect(() => {
+    async function fetchUserLocation() {
+      try {
+        const res = await fetch("/api/userLocation");
+        if (res.ok) {
+          const data = await res.json();
+          setUserLocation({ latitude: data.latitude, longitude: data.longitude });
+          // console.log("Fetched userLocation from API:", data.latitude, data.longitude);
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    }
+    fetchUserLocation();
+  }, []);
   const [searchedLocation, setSearchedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [openList, setOpenList] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -43,23 +59,6 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductName, setSelectedProductName] = useState<string>("");
   const [error, setError] = useState("");
-
-  // Geocode city/country to lat/lon using OpenStreetMap Nominatim
-  const geocodeLocation = async (city: string, country: string) => {
-    if (!city && !country) return null;
-    const query = encodeURIComponent([city, country].filter(Boolean).join(", "));
-    const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
-    try {
-      const res = await fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'wisteria-app-demo' } });
-      const data = await res.json();
-      if (data && data.length > 0) {
-        return { latitude: parseFloat(data[0].lat), longitude: parseFloat(data[0].lon) };
-      }
-    } catch (err) {
-      console.error('Geocoding error:', err);
-    }
-    return null;
-  };
 
   const searchProducts = async () => {
     try {
@@ -94,6 +93,7 @@ export default function Home() {
           latitude: data.userLocation.latitude,
           longitude: data.userLocation.longitude,
         });
+        // console.log("UserLocation", data.userLocation.latitude, data.userLocation.longitude);
       }
 
       if (data.products.length === 1) {
@@ -102,9 +102,23 @@ export default function Home() {
         setSelectedProductName("");
       }
 
-      // Geocode the searched location
-      const loc = await geocodeLocation(city, country);
-      setSearchedLocation(loc);
+      // Lookup searched location coordinates from backend
+      try {
+        const locRes = await fetch("/api/locationLookup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ city, country }),
+        });
+        if (locRes.ok) {
+          const locData = await locRes.json();
+          setSearchedLocation({ latitude: locData.latitude, longitude: locData.longitude });
+          // console.log("SearchedLocation", locData.latitude, locData.longitude);
+        } else {
+          setSearchedLocation(null);
+        }
+      } catch (err) {
+        setSearchedLocation(null);
+      }
     } catch (err) {
       console.error("Failed to fetch products:", err);
       setError("Network error");
@@ -243,12 +257,14 @@ export default function Home() {
             </section>
           )}
 
+          {/* {console.log("selectedProduct", selectedProduct)}
+          {console.log("userLocation", userLocation)} */}
           {/* Map Section */}
           <section className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center min-h-[350px] shadow-sm">
             <h3 className="text-xl font-semibold text-blue-900 mb-4">
               Food Source Locations
             </h3>
-            <div className="w-full h-[280px] bg-gray-50 border border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+            <div className="w-full h-[500px] bg-gray-50 border border-dashed border-gray-300 rounded-lg flex items-center justify-center">
               {searchedLocation && userLocation ? (
                 <ClientMap searchedLocation={searchedLocation} userLocation={userLocation} />
               ) : (
