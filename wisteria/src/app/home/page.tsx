@@ -141,11 +141,12 @@ export default function Home() {
                 onChange={(e) => setSelectedProductName(e.target.value)}
               >
                 <option value="">Select a product</option>
-                {products.map((product) => (
-                  <option key={product.ProductName} value={product.ProductName}>
+                {products.map((product, idx) => (
+                  <option key={`${product.ProductName}-${idx}`} value={product.ProductName}>
                     {product.ProductName}
                   </option>
                 ))}
+
               </select>
             </div>
           )}

@@ -4,6 +4,7 @@ import type { RowDataPacket } from "mysql2/promise";
 import pool from "../../../../lib/db";
 
 interface ProductRow {
+  ProductId: number;   // <--- ADD ProductId here
   ProductName: string;
   CarbonFootprint_per_kg: number;
   LandUse_per_kg: number;
@@ -51,7 +52,14 @@ export async function POST(req: NextRequest) {
     const productsRaw = Array.isArray(resultSets) ? resultSets[0] : [];
 
     const products = productsRaw.map((product) => ({
-      ...product,
+      ProductId: product.ProductId,      // <-- explicitly extract
+      ProductName: product.ProductName,
+      CarbonFootprint_per_kg: product.CarbonFootprint_per_kg,
+      LandUse_per_kg: product.LandUse_per_kg,
+      WaterUse_per_kg: product.WaterUse_per_kg,
+      TotalEmissions: product.TotalEmissions,
+      DistanceMiles: product.DistanceMiles,
+      FuelUsageGallons: product.FuelUsageGallons,
       Location: {
         latitude: product.Latitude,
         longitude: product.Longitude,

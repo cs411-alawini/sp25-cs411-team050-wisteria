@@ -4,45 +4,44 @@ import pool from "../../../../../lib/db";
 
 export async function POST(req: NextRequest) {
   try {
-    const { product, city, country, quantity } = await req.json();
+    const { productId, quantity } = await req.json();
 
-    if (!product || !country || !quantity) {
-      return NextResponse.json({ error: "Missing product, country, or quantity." }, { status: 400 });
+    if (!productId || !quantity) {
+      return NextResponse.json({ error: "Missing productId or quantity." }, { status: 400 });
     }
 
-    let cityParam: string | null = null;
-    if (city && city.trim() !== "") {
-      cityParam = city.trim();
+    const userIdCookie = req.cookies.get("userId")?.value;
+    if (!userIdCookie) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    // 1) Search for a matching product (case-insensitive)
-    const [productRows] = await pool.query<any[]>(`
-      SELECT ProductId, ProductName
-      FROM productData
-      WHERE LOWER(ProductName) LIKE LOWER(CONCAT('%', ?, '%'))
-    `, [product]);
-
-    // 2) If no match at all, allow adding manually (skip ProductId lookup, but you will need to adjust your DB later)
-    if (productRows.length === 0) {
-      return NextResponse.json({ error: "No matching product found. Please check product spelling or add manually later." }, { status: 404 });
+    const userId = Number(userIdCookie);
+    if (Number.isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid userId." }, { status: 400 });
     }
 
-    const matchedProduct = productRows[0];  // Pick the first match for now (you can later add dropdown logic)
+    try {
+      await pool.query(`
+        INSERT INTO groceryProduct (UserId, ProductId, Quantity)
+        VALUES (?, ?, ?)
+      `, [userId, productId, quantity]);
+    } catch (insertError: any) {
+      if (insertError.code === 'ER_DUP_ENTRY') {
+        return NextResponse.json({ error: "Product already exists in your list." }, { status: 409 });
+      } else {
+        console.error("Unexpected insert error:", insertError);
+        throw insertError;
+      }
+    }
 
-    // 3) Insert into groceryProduct
-    await pool.query(`
-      INSERT INTO groceryProduct (UserId, ProductId, Quantity)
-      VALUES (
-        (SELECT UserId FROM userData WHERE EmailId = (SELECT EmailId FROM userData WHERE UserId = ?)),
-        ?, ?
-      )
-    `, [req.cookies.get("userId")?.value, matchedProduct.ProductId, quantity]);
+    // Fetch updated grocery list
+    const [groceryListRows] = await pool.query<any[]>(`
+      CALL GetGroceryListWithEnvironmentalCostAndFuel(?)
+    `, [userId]);
 
     return NextResponse.json({
       success: true,
-      product: {
-        ProductName: matchedProduct.ProductName,
-      }
+      products: groceryListRows[0],  // Get the first result array
     }, { status: 200 });
 
   } catch (error) {
