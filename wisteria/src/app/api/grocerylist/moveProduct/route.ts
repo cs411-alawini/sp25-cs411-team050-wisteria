@@ -4,11 +4,11 @@ import pool from "../../../../../lib/db";
 
 export async function POST(req: NextRequest) {
   try {
-    const { sourceListId, targetListId } = await req.json();
+    const { sourceListId, targetListId, productId } = await req.json();
 
-    if (!sourceListId || !targetListId) {
+    if (!sourceListId || !targetListId || !productId) {
       return NextResponse.json(
-        { error: "Missing sourceListId or targetListId." },
+        { error: "Missing sourceListId, targetListId, or productId." },
         { status: 400 }
       );
     }
@@ -35,8 +35,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Call your stored procedure with the updated parameter list
-    await pool.query(`CALL MoveProductsBetweenLists(?, ?, ?)`, [userId, sourceListId, targetListId]);
+    // Call stored procedure with userId, productId, sourceListId, targetListId
+    await pool.query(
+      `CALL MoveProductBetweenLists(?, ?, ?, ?)`,
+      [userId, productId, sourceListId, targetListId]
+    );
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err: any) {
