@@ -407,6 +407,32 @@ export default function GroceryListPage() {
     }
   };
 
+  // Duplicate the selected grocery list as a new list
+  const duplicateGroceryList = async () => {
+    if (selectedGlId === null) return;
+    try {
+      const res = await fetch("/api/grocerylist/duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ glId: selectedGlId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Refresh the lists and select the new list (assume max glId is the new one)
+        await initializeNumberedLists();
+        // Optionally, select the new list if you want:
+        // const maxId = lists.length > 0 ? Math.max(...lists.map(l => l.glId)) : null;
+        // if (maxId !== null) setSelectedGlId(maxId);
+        setError("");
+      } else {
+        setError(data.error || "Failed to duplicate list");
+      }
+    } catch (err) {
+      console.error("Failed to duplicate list", err);
+      setError("Failed to duplicate list");
+    }
+  };
+
   const handleManualGlIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setManualGlId(value);
@@ -463,7 +489,7 @@ export default function GroceryListPage() {
                 ))}
               </select>
               {products.length > 0 && (
-                <>
+                  <>
                   <button
                     onClick={deleteGroceryList}
                     className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
@@ -471,21 +497,7 @@ export default function GroceryListPage() {
                     Clear List
                   </button>
                   <button
-                    onClick={async () => {
-                      if (selectedGlId === null) return;
-                      // Always assume success and increment glId
-                      const maxId =
-                        lists.length > 0
-                          ? Math.max(...lists.map((l) => l.glId))
-                          : 0;
-                      const newGlId = maxId + 1;
-                      setLists((prev) => [
-                        ...prev,
-                        { glId: newGlId, name: `${newGlId}` },
-                      ]);
-                      setSelectedGlId(newGlId);
-                      setManualGlId(`${newGlId}`);
-                    }}
+                    onClick={duplicateGroceryList}
                     className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
                   >
                     Duplicate List
