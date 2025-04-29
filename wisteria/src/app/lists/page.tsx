@@ -321,22 +321,53 @@ export default function GroceryListPage() {
     }
   };
 
+  // const moveProduct = async (productId: number, targetGlId: number) => {
+  //   if (selectedGlId === null || selectedGlId === targetGlId) return;
+
+  //   try {
+  //     const res = await fetch("/api/grocerylist/move", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         glId: selectedGlId,
+  //         targetGlId,
+  //         productId,
+  //       }),
+  //     });
+
+  //     const data = await res.json();
+
+  //     if (data.success) {
+  //       if (data.products) {
+  //         setProducts(data.products);
+  //       } else {
+  //         fetchGroceryList(selectedGlId);
+  //       }
+  //     } else {
+  //       setError(data.error || "Failed to move product");
+  //     }
+  //   } catch (err) {
+  //     console.error("Failed to move product", err);
+  //     setError("Failed to move product");
+  //   }
+  // };
+
   const moveProduct = async (productId: number, targetGlId: number) => {
     if (selectedGlId === null || selectedGlId === targetGlId) return;
-
+  
     try {
-      const res = await fetch("/api/grocerylist/move", {
+      const res = await fetch("/api/grocerylist/moveProduct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          glId: selectedGlId,
-          targetGlId,
-          productId,
+          sourceListId: selectedGlId,
+          targetListId: targetGlId,
+          productId: productId
         }),
       });
-
+  
       const data = await res.json();
-
+  
       if (data.success) {
         if (data.products) {
           setProducts(data.products);
