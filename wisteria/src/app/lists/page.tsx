@@ -15,7 +15,7 @@ interface GroceryProduct {
   UserId: number;
   ProductId: number;
   ProductName: string;
-  LocationId: number; // Changed from LocationName to LocationId
+  LocationId: number;
   TotalProductEC: number | string;
   EstimatedFuelGallons: number;
 }
@@ -24,6 +24,74 @@ interface GroceryList {
   glId: number;
   name: string;
 }
+
+interface ModalProps {
+  product: GroceryProduct | null;
+  onClose: () => void;
+  onDelete: () => void;
+  onMove: (targetGlId: number) => void;
+  currentGlId: number | null;
+}
+
+const MoveDeleteModal: React.FC<ModalProps> = ({
+  product,
+  onClose,
+  onDelete,
+  onMove,
+  currentGlId,
+}) => {
+  const [targetGlId, setTargetGlId] = useState<number>(currentGlId || 1);
+
+  if (!product) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <h3 className="text-xl font-bold mb-4">
+          What would you like to do with {product.ProductName}?
+        </h3>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Move to list:
+          </label>
+          <select
+            value={targetGlId}
+            onChange={(e) => setTargetGlId(Number(e.target.value))}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2"
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+              <option key={num} value={num} disabled={num === currentGlId}>
+                List {num} {num === currentGlId && "(current)"}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => onMove(targetGlId)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
+          >
+            Move
+          </button>
+          <button
+            onClick={onDelete}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
+          >
+            Delete
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function GroceryListPage() {
   const [lists, setLists] = useState<GroceryList[]>([]);
@@ -34,18 +102,18 @@ export default function GroceryListPage() {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
 
-  // Product search and selection
   const [productName, setProductName] = useState<string>("");
   const [productId, setProductId] = useState<number | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
 
-  // Location information
   const [city, setCity] = useState<string>("");
   const [country, setCountry] = useState<string>("");
 
   const [error, setError] = useState<string>("");
   const [hasMounted, setHasMounted] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [modalProduct, setModalProduct] = useState<GroceryProduct | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
@@ -73,18 +141,16 @@ export default function GroceryListPage() {
     }
   };
 
-  // Initialize numbered lists from 1 to 10
   const initializeNumberedLists = () => {
     const numberedLists = Array.from({ length: 10 }, (_, i) => ({
       glId: i + 1,
       name: `${i + 1}`,
     }));
     setLists(numberedLists);
-    setSelectedGlId(1); // Default to first list
+    setSelectedGlId(1);
     setManualGlId("1");
   };
 
-  // New function to fetch location data for a list of location IDs
   const fetchLocationData = async (locationIds: number[]) => {
     if (locationIds.length === 0) return;
 
@@ -99,7 +165,6 @@ export default function GroceryListPage() {
       const data = await res.json();
 
       if (data.success && data.locations) {
-        // Convert array to object with LocationId as keys
         const locationMap: Record<number, Location> = {};
         data.locations.forEach((loc: Location) => {
           locationMap[loc.LocationId] = loc;
@@ -122,14 +187,10 @@ export default function GroceryListPage() {
 
       if (data.success && data.products) {
         setProducts(data.products);
-
-        // Extract location IDs from products and fetch location data
         const locationIds = data.products
           .map((p: GroceryProduct) => p.LocationId)
           .filter((id: number) => id);
-
         fetchLocationData(locationIds);
-
         setError("");
       } else {
         setProducts([]);
@@ -160,11 +221,9 @@ export default function GroceryListPage() {
       setSearchResults(products);
 
       if (products.length === 1) {
-        // auto-select the only row
         const p = products[0];
         setProductName(p.ProductName);
         setProductId(p.ProductId);
-        // overwrite city/country if backend was more precise
         setCity(p.City || city);
         setCountry(p.Country || country);
         setSearchResults([]);
@@ -176,7 +235,6 @@ export default function GroceryListPage() {
   };
 
   const addProduct = async () => {
-    // Use the manual input glId if available, otherwise use the selected one
     const targetGlId = manualGlId ? parseInt(manualGlId) : selectedGlId;
 
     if (!productId || quantity <= 0 || !targetGlId) {
@@ -186,7 +244,6 @@ export default function GroceryListPage() {
       return;
     }
 
-    // At least country is required for location
     if (!country) {
       setError("Please enter at least a country for the location.");
       return;
@@ -211,21 +268,15 @@ export default function GroceryListPage() {
 
       if (data.success) {
         if (data.products) {
-          // If the API returns the updated products, use them
           setProducts(data.products);
-
-          // Extract location IDs from products and fetch location data
           const locationIds = data.products
             .map((p: GroceryProduct) => p.LocationId)
             .filter((id: number) => id);
-
           fetchLocationData(locationIds);
         } else {
-          // Otherwise, fetch the updated list
           fetchGroceryList(targetGlId);
         }
 
-        // Reset form fields except for glId
         setProductName("");
         setProductId(null);
         setQuantity(1);
@@ -233,8 +284,6 @@ export default function GroceryListPage() {
         setCountry("");
         setSearchResults([]);
         setError("");
-
-        // Update selected glId to match what we just added to
         setSelectedGlId(targetGlId);
       } else {
         setError(data.error || "Failed to add product");
@@ -247,7 +296,6 @@ export default function GroceryListPage() {
 
   const deleteProduct = async (productId: number) => {
     if (selectedGlId === null) return;
-    console.log("Deleting product", { glId: selectedGlId, productId });
     try {
       const res = await fetch("/api/grocerylist/delete", {
         method: "POST",
@@ -257,17 +305,12 @@ export default function GroceryListPage() {
       const data: any = await res.json();
       if (data.success) {
         if (data.products) {
-          // If the API returns the updated products, use them
           setProducts(data.products);
-
-          // Extract location IDs from products and fetch location data
           const locationIds = data.products
             .map((p: GroceryProduct) => p.LocationId)
             .filter((id: number) => id);
-
           fetchLocationData(locationIds);
         } else {
-          // Otherwise, fetch the updated list
           fetchGroceryList(selectedGlId);
         }
       } else {
@@ -275,6 +318,37 @@ export default function GroceryListPage() {
       }
     } catch {
       setError("Failed to delete product.");
+    }
+  };
+
+  const moveProduct = async (productId: number, targetGlId: number) => {
+    if (selectedGlId === null || selectedGlId === targetGlId) return;
+
+    try {
+      const res = await fetch("/api/grocerylist/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          glId: selectedGlId,
+          targetGlId,
+          productId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        if (data.products) {
+          setProducts(data.products);
+        } else {
+          fetchGroceryList(selectedGlId);
+        }
+      } else {
+        setError(data.error || "Failed to move product");
+      }
+    } catch (err) {
+      console.error("Failed to move product", err);
+      setError("Failed to move product");
     }
   };
 
@@ -305,15 +379,12 @@ export default function GroceryListPage() {
   const handleManualGlIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setManualGlId(value);
-
-    // If valid number and in range, update selected list too
     const numValue = parseInt(value);
     if (!isNaN(numValue) && numValue >= 1 && numValue <= 10) {
       setSelectedGlId(numValue);
     }
   };
 
-  // Function to get location display string
   const getLocationDisplay = (locationId: number) => {
     const location = locations[locationId];
     if (!location) return "Loading...";
@@ -323,7 +394,6 @@ export default function GroceryListPage() {
     }${location.Country || "Unknown Country"}`;
   };
 
-  // Calculate totals using the correct field names from the API response
   const totalEmissions = products.reduce(
     (sum, p) =>
       sum +
@@ -364,7 +434,7 @@ export default function GroceryListPage() {
               {products.length > 0 && (
                 <button
                   onClick={deleteGroceryList}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
                 >
                   Clear List
                 </button>
@@ -373,7 +443,6 @@ export default function GroceryListPage() {
           </div>
 
           <div className="my-4 w-full flex flex-col gap-4">
-            {/* List ID input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Grocery List ID (1-10)
@@ -389,7 +458,6 @@ export default function GroceryListPage() {
               />
             </div>
 
-            {/* Product search */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Product
@@ -426,7 +494,6 @@ export default function GroceryListPage() {
               )}
             </div>
 
-            {/* Location fields */}
             <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -455,7 +522,6 @@ export default function GroceryListPage() {
               </div>
             </div>
 
-            {/* Quantity field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Quantity
@@ -514,10 +580,13 @@ export default function GroceryListPage() {
                       </td>
                       <td className="py-4">
                         <button
-                          onClick={() => deleteProduct(product.ProductId)}
-                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all"
+                          onClick={() => {
+                            setModalProduct(product);
+                            setShowModal(true);
+                          }}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all"
                         >
-                          Delete
+                          Actions
                         </button>
                       </td>
                     </tr>
@@ -537,6 +606,22 @@ export default function GroceryListPage() {
             )}
           </div>
         </div>
+
+        {showModal && modalProduct && (
+          <MoveDeleteModal
+            product={modalProduct}
+            onClose={() => setShowModal(false)}
+            onDelete={() => {
+              deleteProduct(modalProduct.ProductId);
+              setShowModal(false);
+            }}
+            onMove={(targetGlId) => {
+              moveProduct(modalProduct.ProductId, targetGlId);
+              setShowModal(false);
+            }}
+            currentGlId={selectedGlId}
+          />
+        )}
       </main>
     </div>
   );
