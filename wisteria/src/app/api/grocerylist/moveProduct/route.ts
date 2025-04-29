@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import pool from "../../../../../lib/db"; 
+import pool from "../../../../../lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,32 +18,30 @@ export async function POST(req: NextRequest) {
     if (!userIdCookie) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
     }
+
     const userId = Number(userIdCookie);
     if (Number.isNaN(userId)) {
-      return NextResponse.json({ error: "Invalid userId." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid user ID." }, { status: 400 });
     }
 
-    // Verify source list actually belongs to this user
-    const [sourceRows] = await pool.query<any[]>(
-      `SELECT 1 FROM groceryList WHERE GroceryListId = ? AND UserId = ? LIMIT 1`,
-      [sourceListId, userId]
-    );
-    if (!sourceRows.length) {
-      return NextResponse.json(
-        { error: "Source list not found or not owned by user." },
-        { status: 404 }
-      );
-    }
-
-    // Call stored procedure with userId, productId, sourceListId, targetListId
+    // Move the product using the stored procedure
     await pool.query(
       `CALL MoveProductBetweenLists(?, ?, ?, ?)`,
       [userId, productId, sourceListId, targetListId]
     );
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    // Optionally, fetch updated target list if you want (similar to your delete example)
+    const [resultSets] = await pool.query<any[]>(
+      "CALL GetGroceryListWithEnvironmentalCostAndFuel(?, ?)",
+      [userId, targetListId]
+    );
+
+    return NextResponse.json(
+      { success: true, products: resultSets[0] },
+      { status: 200 }
+    );
   } catch (err: any) {
-    console.error(err);
+    console.error("Error moving product:", err);
     return NextResponse.json(
       { error: "Internal server error." },
       { status: 500 }
