@@ -3,14 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 
-interface Location {
-  LocationId: number;
-  City: string;
-  Country: string;
-  Latitude: number;
-  Longitude: number;
-}
-
 interface GroceryProduct {
   UserId: number;
   ProductId: number;
@@ -98,7 +90,6 @@ export default function GroceryListPage() {
   const [selectedGlId, setSelectedGlId] = useState<number | null>(null);
   const [manualGlId, setManualGlId] = useState<string>("");
   const [products, setProducts] = useState<GroceryProduct[]>([]);
-  const [locations, setLocations] = useState<Record<number, Location>>({});
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
 
@@ -616,19 +607,14 @@ export default function GroceryListPage() {
                   {products.map((product, index) => (
                     <tr key={index} className="border-b">
                       <td className="py-4">{product.ProductName}</td>
-                      <td className="py-4">
-                        {getLocationDisplay(product.LocationId)}
-                      </td>
+                      <td className="py-4">{product.LocationName}</td>
                       <td className="py-4">
                         {typeof product.TotalProductEC === "string"
                           ? parseFloat(product.TotalProductEC).toFixed(2)
                           : product.TotalProductEC.toFixed(2)}
                       </td>
                       <td className="py-4">
-                        {product.EstimatedFuelGallons !== undefined &&
-                        product.EstimatedFuelGallons !== null
-                          ? product.EstimatedFuelGallons.toFixed(2)
-                          : "0.00"}
+                        {product.EstimatedFuelGallons.toFixed(2)}
                       </td>
                       <td className="py-4">
                         <button
